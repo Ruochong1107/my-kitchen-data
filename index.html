@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的厨房</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;background:#f0ede8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+:root{
+  --am50:#FAEEDA;--am100:#FAC775;--am4:#BA7517;--am6:#854F0B;--am8:#633806;
+  --tl50:#E1F5EE;--tl4:#1D9E75;--tl6:#0F6E56;--tl8:#085041;
+  --co50:#FAECE7;--co4:#D85A30;--co6:#993C1D;
+  --pu50:#EEEDFE;--pu4:#7F77DD;--pu6:#534AB7;--pu8:#3C3489;
+  --bg:#fff;--bg2:#f7f5f1;--bg3:#eeebe6;
+  --tx:#1a1a1a;--tx2:#666;--tx3:#999;
+  --bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.18);
+  --r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){
+  body{background:#181815;}
+  :root{
+    --bg:#242420;--bg2:#1e1e1a;--bg3:#2a2a26;
+    --tx:#f0efe8;--tx2:#aaa;--tx3:#666;
+    --bd:rgba(255,255,255,0.09);--bd2:rgba(255,255,255,0.18);
+    --am50:#3a2a10;--am8:#FAC775;
+    --tl50:#0a2a1e;--tl8:#9FE1CB;
+    --co50:#3a1a10;--pu50:#1e1c3a;--pu8:#AFA9EC;
+  }
+}
+.app{display:flex;width:980px;max-width:100%;height:640px;border:0.5px solid var(--bd);border-radius:var(--rl);overflow:hidden;background:var(--bg);box-shadow:0 8px 40px rgba(0,0,0,0.12);}
+.sidebar{width:185px;border-right:0.5px solid var(--bd);display:flex;flex-direction:column;background:var(--bg2);flex-shrink:0;}
+.sidebar-logo{padding:18px 14px 6px;display:flex;align-items:center;gap:8px;}
+.logo-mark{width:26px;height:26px;border-radius:7px;background:var(--am4);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.logo-text{font-size:14px;font-weight:500;color:var(--tx);}
+.sidebar-sec{padding:16px 14px 4px;font-size:10px;font-weight:500;color:var(--tx3);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--tx2);border-left:2px solid transparent;transition:background 0.12s;}
+.nav-item:hover{background:var(--bg);color:var(--tx);}
+.nav-item.active{background:var(--bg);color:var(--tx);border-left-color:var(--am4);font-weight:500;}
+.nav-item.active.t{border-left-color:var(--tl4);}
+.nav-item.active.co{border-left-color:var(--co4);}
+.nicon{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.nicon.r{background:var(--am50);}
+.nicon.g{background:var(--tl50);}
+.nicon.s{background:var(--co50);}
+/* shopping list view */
+.shop-view{display:flex;width:100%;height:100%;overflow:hidden;}
+.store-list{width:160px;border-right:0.5px solid var(--bd);flex-shrink:0;overflow-y:auto;padding:6px 0;}
+.store-item{padding:9px 14px;cursor:pointer;border-left:2px solid transparent;font-size:13px;color:var(--tx2);transition:background 0.1s;}
+.store-item:hover{background:var(--bg2);color:var(--tx);}
+.store-item.active{background:var(--bg2);border-left-color:var(--co4);color:var(--tx);font-weight:500;}
+.store-item .s-name{font-size:13px;}
+.store-item .s-count{font-size:11px;color:var(--tx3);margin-top:1px;}
+.checklist-panel{flex:1;overflow-y:auto;padding:20px 22px;}
+.cl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cl-title{font-size:17px;font-weight:500;color:var(--tx);}
+.cl-clear{font-size:11px;color:var(--tx3);cursor:pointer;background:none;border:none;font-family:inherit;padding:4px 8px;border-radius:var(--r);}
+.cl-clear:hover{background:var(--bg2);color:var(--tx2);}
+.cl-section{margin-bottom:16px;}
+.cl-sec-label{font-size:10px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:var(--r);margin-bottom:4px;background:var(--bg2);cursor:pointer;transition:opacity 0.15s;}
+.cl-item.checked{opacity:0.45;}
+.cl-item.checked .cl-item-name{text-decoration:line-through;}
+.cl-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--bd2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all 0.12s;}
+.cl-check.on{background:var(--co4);border-color:var(--co4);color:#fff;}
+.cl-item-body{flex:1;min-width:0;}
+.cl-item-name{font-size:13px;color:var(--tx);}
+.cl-item-note{font-size:11px;color:var(--tx2);margin-top:2px;}
+.cl-item-freq{font-size:10px;color:var(--tx3);margin-top:2px;}
+.cl-progress{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.cl-bar-wrap{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.cl-bar{height:100%;background:var(--co4);border-radius:2px;transition:width 0.3s;}
+.cl-pct{font-size:11px;color:var(--tx2);min-width:28px;text-align:right;}
+.store-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--tx2);font-size:13px;gap:8px;}
+.store-empty-icon{font-size:28px;}
+
+.main{flex:1;display:flex;overflow:hidden;}
+.list-panel{width:215px;border-right:0.5px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.ph{padding:10px 12px;border-bottom:0.5px solid var(--bd);display:flex;justify-content:space-between;align-items:center;gap:6px;}
+.pt{font-size:12px;font-weight:500;color:var(--tx);}
+.add-btn{width:22px;height:22px;border-radius:6px;border:0.5px solid var(--bd2);background:transparent;cursor:pointer;font-size:17px;color:var(--tx2);display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;}
+.add-btn:hover{background:var(--bg2);}
+
+/* filter tabs */
+.ftabs{display:flex;gap:0;border-bottom:0.5px solid var(--bd);}
+.ftab{flex:1;padding:6px 4px;font-size:11px;text-align:center;cursor:pointer;color:var(--tx2);border-bottom:2px solid transparent;transition:all 0.12s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;}
+.ftab:hover{color:var(--tx);}
+.ftab.active{color:var(--tl6);border-bottom-color:var(--tl4);font-weight:500;}
+.ftab.active.amber{color:var(--am6);border-bottom-color:var(--am4);}
+
+.ls{flex:1;overflow-y:auto;padding:4px 0;}
+.li{padding:8px 12px;cursor:pointer;border-left:2px solid transparent;transition:background 0.1s;}
+.li:hover{background:var(--bg2);}
+.li.active{background:var(--bg2);border-left-color:var(--am4);}
+.li.active.t{border-left-color:var(--tl4);}
+.li-name{font-size:13px;color:var(--tx);display:flex;align-items:center;gap:5px;}
+.li-meta{font-size:11px;color:var(--tx2);margin-top:1px;}
+.type-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot-long{background:var(--pu4);}
+.dot-short{background:var(--tl4);}
+
+/* detail panel */
+.dp{flex:1;overflow-y:auto;}
+.de{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--tx2);font-size:13px;gap:8px;}
+.de-icon{width:44px;height:44px;border-radius:12px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:22px;}
+
+/* hero image */
+.hero{width:100%;height:200px;background:var(--bg2);position:relative;overflow:hidden;flex-shrink:0;}
+.hero img{width:100%;height:100%;object-fit:cover;}
+.hero-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--tx3);font-size:12px;}
+.hero-placeholder .ph-icon{font-size:32px;}
+.hero-upload{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.45);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px);}
+.hero-upload:hover{background:rgba(0,0,0,0.6);}
+.hero-input{display:none;}
+
+.dc{padding:20px 22px;}
+.dtitle{font-size:18px;font-weight:500;color:var(--tx);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.dsub{font-size:12px;color:var(--tx2);margin-bottom:16px;}
+.slabel{font-size:10px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;margin-top:16px;}
+.slabel:first-of-type{margin-top:0;}
+.divider{height:0.5px;background:var(--bd);margin:14px 0;}
+
+/* badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--r);font-size:11px;}
+.badge-meal{background:var(--am50);color:var(--am8);}
+.badge-long{background:var(--pu50);color:var(--pu8);gap:4px;}
+.badge-short{background:var(--tl50);color:var(--tl8);gap:4px;}
+.badge-dot{width:5px;height:5px;border-radius:50%;}
+
+/* ingredient tags */
+.itag{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:var(--r);background:var(--am50);color:var(--am8);font-size:12px;margin:2px;cursor:pointer;border:0.5px solid transparent;transition:border-color 0.1s;}
+.itag:hover{border-color:var(--am4);}
+.itag .qty{color:var(--am6);font-size:11px;}
+.rtag{display:inline-flex;align-items:center;padding:4px 9px;border-radius:var(--r);background:var(--tl50);color:var(--tl8);font-size:12px;margin:2px;cursor:pointer;border:0.5px solid transparent;transition:border-color 0.1s;}
+.rtag:hover{border-color:var(--tl4);}
+.tags-wrap{display:flex;flex-wrap:wrap;margin:-2px;}
+
+/* buy rows */
+.buy-row{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--r);background:var(--bg2);margin-bottom:5px;}
+.buy-store{font-size:13px;font-weight:500;color:var(--tx);}
+.buy-note{font-size:12px;color:var(--tx2);}
+.buy-freq{font-size:11px;color:var(--tx3);margin-top:1px;}
+
+/* steps */
+.steps{display:flex;flex-direction:column;gap:7px;}
+.step{display:flex;gap:9px;font-size:13px;color:var(--tx);line-height:1.6;}
+.snum{min-width:20px;height:20px;border-radius:50%;background:var(--am50);color:var(--am8);font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+.snum.t{background:var(--tl50);color:var(--tl8);}
+
+/* ingredient thumb in list */
+.li-img{width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;}
+.li-img-ph{width:32px;height:32px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.li-inner{display:flex;align-items:center;gap:8px;}
+.li-text{flex:1;min-width:0;}
+
+/* modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:100;}
+.md{background:var(--bg);border-radius:var(--rl);padding:22px;width:380px;border:0.5px solid var(--bd);max-height:90vh;overflow-y:auto;}
+.md h3{font-size:14px;font-weight:500;margin-bottom:14px;color:var(--tx);}
+.fg{margin-bottom:10px;}
+.fl{font-size:11px;color:var(--tx2);margin-bottom:3px;display:block;}
+.fi{width:100%;padding:7px 9px;font-size:13px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--tx);font-family:inherit;}
+.fi:focus{outline:none;border-color:var(--am4);}
+.fi.t:focus{border-color:var(--tl4);}
+.ma{display:flex;gap:8px;margin-top:14px;justify-content:flex-end;}
+.btn{padding:6px 14px;font-size:12px;border-radius:var(--r);cursor:pointer;border:0.5px solid var(--bd2);background:transparent;color:var(--tx);font-family:inherit;}
+.btn:hover{background:var(--bg2);}
+.bp{background:var(--am4);color:#fff;border-color:var(--am4);}
+.bp:hover{background:var(--am6);}
+.bp.t{background:var(--tl4);border-color:var(--tl4);}
+.bp.t:hover{background:var(--tl6);}
+.cbg{max-height:110px;overflow-y:auto;border:0.5px solid var(--bd);border-radius:var(--r);padding:5px;}
+.cbi{display:flex;align-items:center;gap:6px;padding:3px 5px;font-size:12px;cursor:pointer;border-radius:4px;color:var(--tx);}
+.cbi:hover{background:var(--bg2);}
+.del-btn{background:none;border:none;cursor:pointer;font-size:15px;color:var(--tx2);padding:0 3px;line-height:1;}
+.del-btn:hover{color:var(--co6);}
+.sr{display:flex;gap:5px;align-items:center;margin-bottom:5px;}
+.ab{font-size:12px;cursor:pointer;background:none;border:none;font-family:inherit;padding:2px 0;color:var(--tl6);}
+.ab:hover{text-decoration:underline;}
+.type-sel{display:flex;gap:6px;margin-top:4px;}
+.type-opt{flex:1;padding:7px;border-radius:var(--r);border:0.5px solid var(--bd2);cursor:pointer;text-align:center;font-size:12px;color:var(--tx2);background:var(--bg);transition:all 0.12s;font-family:inherit;}
+.type-opt:hover{background:var(--bg2);}
+.type-opt.sel-long{background:var(--pu50);color:var(--pu8);border-color:var(--pu4);}
+.type-opt.sel-short{background:var(--tl50);color:var(--tl8);border-color:var(--tl4);}
+/* recipe filter bar */
+.filter-bar{border-bottom:0.5px solid var(--bd);padding:5px 8px 4px;}
+.fpill-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px;}
+.fpill-row:last-child{margin-bottom:0;}
+.fpill{padding:2px 8px;border-radius:20px;font-size:11px;border:0.5px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;transition:all 0.1s;white-space:nowrap;}
+.fpill:hover{background:var(--bg2);color:var(--tx);}
+.fpill.fp-active-am{background:var(--am50);color:var(--am8);border-color:var(--am4);font-weight:500;}
+.fpill.fp-active-tl{background:var(--tl50);color:var(--tl8);border-color:var(--tl4);font-weight:500;}
+/* github sync */
+.sync-bar{padding:8px 14px;border-top:0.5px solid var(--bd);display:flex;align-items:center;gap:6px;font-size:11px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sync-dot.ok{background:#4CAF50;}
+.sync-dot.ing{background:var(--am4);animation:pulse 1s infinite;}
+.sync-dot.err{background:var(--co4);}
+.sync-dot.off{background:var(--tx3);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.sync-label{color:var(--tx2);flex:1;}
+.sync-setup-btn{font-size:10px;color:var(--tx3);cursor:pointer;background:none;border:none;font-family:inherit;padding:2px 4px;border-radius:4px;}
+.sync-setup-btn:hover{background:var(--bg3);color:var(--tx2);}
+/* github setup modal */
+.gh-setup{background:var(--bg);border-radius:var(--rl);padding:22px;width:360px;border:0.5px solid var(--bd);}
+.gh-setup h3{font-size:14px;font-weight:500;margin-bottom:6px;color:var(--tx);}
+.gh-setup p{font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.6;}
+.gh-setup a{color:var(--tl6);}
+/* detail action bar */
+.detail-actions{display:flex;gap:6px;justify-content:flex-end;margin-bottom:12px;}
+.edit-btn{padding:5px 12px;font-size:12px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;transition:background 0.12s;}
+.edit-btn:hover{background:var(--am50);color:var(--am6);border-color:var(--am4);}
+.del-item-btn{padding:5px 9px;font-size:12px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;transition:background 0.12s;}
+.del-item-btn:hover{background:var(--co50);color:var(--co6);border-color:var(--co4);}
+/* shopping list */
+.shop-list{display:flex;flex-direction:column;gap:8px;}
+.shop-row{background:var(--bg2);border-radius:var(--r);padding:10px 12px;}
+.shop-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.shop-name{font-size:13px;font-weight:500;color:var(--tx);}
+.shop-fresh{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--tl50);color:var(--tl8);font-weight:500;}
+.shop-pills{display:flex;flex-wrap:wrap;gap:4px;}
+.shop-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;}
+.sp-short{background:var(--tl50);color:var(--tl8);}
+.sp-long{background:var(--pu50);color:var(--pu8);}
+.sp-qty{opacity:0.7;}
+/* img upload in modal */
+.img-upload-area{border:1px dashed var(--bd2);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;color:var(--tx2);font-size:12px;transition:background 0.12s;}
+.img-upload-area:hover{background:var(--bg2);}
+.img-preview{width:100%;height:100px;object-fit:cover;border-radius:var(--r);display:block;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<div class="sidebar">
+  <div class="sidebar-logo"><div class="logo-mark">🍳</div><span class="logo-text">我的厨房</span></div>
+  <div class="sidebar-sec">视图</div>
+  <div class="nav-item active" id="nav-r" onclick="sv('recipe')"><div class="nicon r">🍲</div>菜谱</div>
+  <div class="nav-item" id="nav-i" onclick="sv('ingredient')"><div class="nicon g">🥬</div>原料</div>
+  <div class="nav-item" id="nav-s" onclick="sv('shop')"><div class="nicon s">🛒</div>购物清单</div>
+  <div style="flex:1;"></div>
+  <div style="padding:10px 14px 4px;font-size:11px;color:var(--tx3);line-height:1.5;">点击标签跳转<br>数据自动保存</div>
+  <div class="sync-bar" id="sync-bar">
+    <div class="sync-dot off" id="sync-dot"></div>
+    <span class="sync-label" id="sync-label">未连接</span>
+    <button class="sync-setup-btn" onclick="openGHSetup()">设置</button>
+  </div>
+</div>
+<div class="main" id="mc"></div>
+</div>
+
+<script>
+const SK='kitchen_v2', IK='kitchen_img_v2';
+
+const DEF={
+  ingredients:[
+    {id:'i1',name:'五花肉',type:'short',stores:[{name:'盒马鲜生',note:'冷鲜区，选三层',freq:'每周'},{name:'菜市场',note:'早市现切更新鲜',freq:'按需'}]},
+    {id:'i2',name:'老抽',type:'long',stores:[{name:'超市',note:'李锦记或海天品牌',freq:'半年一次'}]},
+    {id:'i3',name:'生抽',type:'long',stores:[{name:'超市',note:'海鲜酱油更香',freq:'半年一次'}]},
+    {id:'i4',name:'冰糖',type:'long',stores:[{name:'超市',note:'散称或袋装',freq:'数月一次'}]},
+    {id:'i5',name:'八角',type:'long',stores:[{name:'调料铺',note:'买干品，香气足',freq:'半年以上'}]},
+    {id:'i6',name:'桂皮',type:'long',stores:[{name:'调料铺',note:'与八角同买',freq:'半年以上'}]},
+    {id:'i7',name:'鸡蛋',type:'short',stores:[{name:'盒马鲜生',note:'散养鸡蛋更香',freq:'每周'}]},
+    {id:'i8',name:'嫩豆腐',type:'short',stores:[{name:'菜市场',note:'当日现做，软嫩',freq:'2-3天'}]},
+    {id:'i9',name:'猪肉末',type:'short',stores:[{name:'菜市场',note:'现绞，三肥七瘦',freq:'按需'}]},
+    {id:'i10',name:'郫县豆瓣酱',type:'long',stores:[{name:'超市',note:'选红油郫县豆瓣',freq:'2-3个月'}]},
+    {id:'i11',name:'花椒',type:'long',stores:[{name:'调料铺',note:'汉源花椒最香麻',freq:'半年以上'}]},
+    {id:'i12',name:'大蒜',type:'short',stores:[{name:'菜市场',note:'选独头蒜',freq:'每周'}]},
+    {id:'i13',name:'姜',type:'short',stores:[{name:'菜市场',note:'老姜去腥效果好',freq:'每周'}]},
+    {id:'i14',name:'西红柿',type:'short',stores:[{name:'盒马鲜生',note:'选沙瓤番茄',freq:'每周'}]},
+    {id:'i15',name:'番茄酱',type:'long',stores:[{name:'超市',note:'可与西红柿搭配',freq:'2-3个月'}]},
+    {id:'i16',name:'酸种面包',type:'short',stores:[{name:'Whole Foods',note:'面包区，外脆内韧',freq:'每周'}]},
+    {id:'i17',name:'布里芝士 Brie',type:'short',stores:[{name:'Whole Foods',note:'奶酪柜台，选软熟',freq:'每周'}]},
+    {id:'i18',name:'小番茄',type:'short',stores:[{name:'Whole Foods',note:'选混色更好看',freq:'每周'}]},
+    {id:'i19',name:'帕尔马火腿',type:'short',stores:[{name:'Whole Foods',note:'冷肉区，买薄切',freq:'每周'}]},
+    {id:'i20',name:'蜂蜜',type:'long',stores:[{name:'超市',note:'花蜜或椴树蜜均可',freq:'2-3个月'}]},
+    {id:'i21',name:'油香辣椒碎',type:'long',stores:[{name:'超市',note:"Trader Joe's辣椒片油也可",freq:'2-3个月'}]},
+    {id:'i22',name:'核桃',type:'long',stores:[{name:'超市',note:'买原味生核桃',freq:'1-2个月'}]},
+    {id:'i23',name:'柠檬',type:'short',stores:[{name:'超市',note:'需要皮屑时选有机',freq:'每周'}]},
+    {id:'i24',name:'青提',type:'short',stores:[{name:'Whole Foods',note:'Cotton Candy品种最甜',freq:'每周'}]},
+    {id:'i25',name:'橄榄油',type:'long',stores:[{name:'超市',note:'Extra Virgin，选深色瓶',freq:'2-3个月'}]},
+    {id:'i26',name:'百里香',type:'long',stores:[{name:'Whole Foods',note:'干品长期，鲜品按需',freq:'数月一次'}]},
+    {id:'i27',name:'法棍',type:'short',stores:[{name:'Whole Foods',note:'面包区，当日出炉',freq:'按需'}]},
+    {id:'i28',name:'Burrata芝士',type:'short',stores:[{name:'Whole Foods',note:'奶酪柜台，当日食用',freq:'按需'}]},
+    {id:'i29',name:'黑胡椒',type:'long',stores:[{name:'超市',note:'现磨效果最好',freq:'半年以上'}]},
+    {id:'i30',name:'黑醋',type:'long',stores:[{name:'超市',note:'意大利摩德纳产区',freq:'半年以上'}]},
+    {id:'i31',name:'盐',type:'long',stores:[{name:'超市',note:'海盐更细腻',freq:'数月一次'}]},
+  ],
+  recipes:[
+    {id:'r1',name:'红烧肉',category:'家常菜',mealTime:'正餐',cookTime:'90分钟',
+      ingredients:[{id:'i1',qty:'500g'},{id:'i2',qty:'2勺'},{id:'i3',qty:'1勺'},{id:'i4',qty:'30g'},{id:'i5',qty:'2个'},{id:'i6',qty:'1段'},{id:'i13',qty:'3片'}],
+      steps:['五花肉切方块，冷水下锅焯水去腥，捞出洗净','锅中放冰糖小火炒糖色，加入肉块翻炒上色','加老抽、生抽、八角、桂皮、姜片，加热水没过肉','大火烧开后转小火焖煮60分钟','大火收汁至浓稠，装盘']},
+    {id:'r2',name:'麻婆豆腐',category:'川菜',mealTime:'正餐',cookTime:'20分钟',
+      ingredients:[{id:'i8',qty:'1块'},{id:'i9',qty:'100g'},{id:'i10',qty:'2勺'},{id:'i11',qty:'1勺'},{id:'i12',qty:'3瓣'},{id:'i13',qty:'2片'},{id:'i3',qty:'1勺'}],
+      steps:['豆腐切小块，加盐水中泡5分钟，捞出备用','锅热放油，炒香豆瓣酱至出红油','加肉末炒散，放蒜末姜末炒香','加适量水，放入豆腐，轻轻推动','调生抽，小火煮3分钟，撒花椒粉，勾薄芡出锅']},
+    {id:'r3',name:'番茄炒蛋',category:'家常菜',mealTime:'正餐',cookTime:'15分钟',
+      ingredients:[{id:'i14',qty:'2个'},{id:'i7',qty:'3个'},{id:'i15',qty:'1勺'}],
+      steps:['鸡蛋打散加少许盐，西红柿切块备用','锅热多放油，倒入蛋液，半凝固时划散盛出','锅中留油，下西红柿大火翻炒出汁','加入番茄酱增色提味','倒入鸡蛋，加盐糖调味，翻炒均匀出锅']},
+    {id:'r4',name:'帕火番茄布里吐司',category:'西餐',mealTime:'Brunch',cookTime:'15分钟',
+      ingredients:[{id:'i16',qty:'2片'},{id:'i17',qty:'适量'},{id:'i18',qty:'4-5颗'},{id:'i19',qty:'2片'},{id:'i20',qty:'少许'},{id:'i21',qty:'可选'},{id:'i22',qty:'可选'},{id:'i23',qty:'可选'}],
+      steps:['酸种面包切片','铺上布里芝士，烤箱180°C烤约10分钟，烤到芝士融化','小番茄切片（一颗切3-4片，对半切会太厚），铺在面包上','铺上一片帕尔马火腿（量约等于番茄片的面积）','淋上蜂蜜','辣口版：撒油香辣椒碎；清爽版：加核桃碎+柠檬汁+柠檬屑（喜欢basil可加）']},
+    {id:'r5',name:'烤青提Burrata法棍',category:'西餐',mealTime:'Brunch',cookTime:'25分钟',
+      ingredients:[{id:'i24',qty:'一把'},{id:'i25',qty:'适量'},{id:'i26',qty:'少许'},{id:'i31',qty:'少许'},{id:'i27',qty:'半根'},{id:'i28',qty:'1个'},{id:'i29',qty:'适量'},{id:'i30',qty:'可选'}],
+      steps:['青提对半切，加橄榄油、百里香、一点盐拌匀','烤箱200°C烤15-20分钟至微微焦糖化','法棍对半切，入烤箱复烤至表面酥脆','将Burrata撕开铺在法棍上','铺上烤好的青提','撒黑胡椒，再淋少许橄榄油（喜欢黑醋可加几滴）']},
+  ]
+};
+
+function ld(){try{const s=localStorage.getItem(SK);return s?JSON.parse(s):JSON.parse(JSON.stringify(DEF));}catch(e){return JSON.parse(JSON.stringify(DEF));}}
+function ldImgs(){try{const s=localStorage.getItem(IK);return s?JSON.parse(s):{};}catch(e){return {};}}
+function sd(){try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){} syncToGH();}
+function sdImgs(){try{localStorage.setItem(IK,JSON.stringify(IMGS));}catch(e){} syncImagesToGH();}
+
+// ── GitHub sync ──────────────────────────────────────────
+const REPO='Ruochong1107/my-kitchen-data';
+const GH_TOKEN_KEY='kitchen_gh_token';
+const GH_DATA_PATH='data.json';
+const GH_IMGS_PATH='images.json';
+let _ghToken=localStorage.getItem(GH_TOKEN_KEY)||'';
+let _syncTimeout=null;
+
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  if(!dot||!lbl)return;
+  dot.className='sync-dot '+state;
+  lbl.textContent=msg;
+}
+
+async function ghGet(path){
+  const r=await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`,{
+    headers:{Authorization:`token ${_ghToken}`,Accept:'application/vnd.github.v3+json'}
+  });
+  if(r.status===404)return null;
+  if(!r.ok)throw new Error(`GitHub GET ${r.status}`);
+  return r.json();
+}
+
+async function ghPut(path,content,sha){
+  const json=JSON.stringify(content,null,2);
+  const enc=new TextEncoder();
+  const bytes=enc.encode(json);
+  let b64str='';
+  for(let i=0;i<bytes.length;i++) b64str+=String.fromCharCode(bytes[i]);
+  const body={message:`update ${path}`,content:btoa(b64str)};
+  if(sha)body.sha=sha;
+  const r=await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`,{
+    method:'PUT',
+    headers:{Authorization:`token ${_ghToken}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){const e=await r.json();throw new Error(e.message||`GitHub PUT ${r.status}`);}
+  return r.json();
+}
+
+async function syncToGH(){
+  if(!_ghToken)return;
+  clearTimeout(_syncTimeout);
+  _syncTimeout=setTimeout(async()=>{
+    setSyncStatus('ing','同步中…');
+    try{
+      const existing=await ghGet(GH_DATA_PATH);
+      await ghPut(GH_DATA_PATH,DATA,existing?.sha);
+      setSyncStatus('ok','已同步 ✓');
+    }catch(e){setSyncStatus('err','同步失败');}
+  },1200);
+}
+
+async function syncImagesToGH(){
+  if(!_ghToken)return;
+  try{
+    const existing=await ghGet(GH_IMGS_PATH);
+    await ghPut(GH_IMGS_PATH,IMGS,existing?.sha);
+  }catch(e){console.warn('image sync failed',e);}
+}
+
+function ghDecode(b64){
+  const bytes=atob(b64.replace(/\n/g,''));
+  const arr=new Uint8Array(bytes.length);
+  for(let i=0;i<bytes.length;i++) arr[i]=bytes.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(arr);
+}
+
+async function loadFromGH(){
+  if(!_ghToken){setSyncStatus('off','未连接');return;}
+  setSyncStatus('ing','连接中…');
+  try{
+    const [dataFile,imgsFile]=await Promise.all([ghGet(GH_DATA_PATH),ghGet(GH_IMGS_PATH)]);
+    if(dataFile){
+      DATA=JSON.parse(ghDecode(dataFile.content));
+      localStorage.setItem(SK,JSON.stringify(DATA));
+      if(imgsFile){
+        IMGS=JSON.parse(ghDecode(imgsFile.content));
+        localStorage.setItem(IK,JSON.stringify(IMGS));
+      }
+      setSyncStatus('ok','已同步 ✓');
+      render();
+    } else {
+      setSyncStatus('ing','首次上传数据…');
+      await ghPut(GH_DATA_PATH,DATA,null);
+      if(Object.keys(IMGS).length>0) await ghPut(GH_IMGS_PATH,IMGS,null);
+      setSyncStatus('ok','已同步 ✓');
+    }
+  }catch(e){
+    setSyncStatus('err','连接失败');
+    console.warn('GitHub sync error:',e);
+  }
+}
+
+function openGHSetup(){
+  const overlay=document.createElement('div');
+  overlay.className='mo';overlay.id='gh-overlay';
+  overlay.innerHTML=`<div class="gh-setup">
+    <h3>🔗 GitHub 同步设置</h3>
+    <p>连接后数据自动保存到 GitHub，换任何设备打开都能同步。<br>
+    Token 生成：<a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
+    勾选 <strong>repo</strong> 权限，Expiration 选 No expiration。</p>
+    <div class="fg"><label class="fl">Personal Access Token</label>
+      <input class="fi" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxx" value="${_ghToken}" type="password">
+    </div>
+    <div class="ma">
+      <button class="btn" onclick="document.getElementById('gh-overlay').remove()">取消</button>
+      ${_ghToken?`<button class="btn" onclick="clearGHToken()" style="color:var(--co6)">断开连接</button>`:''}
+      <button class="bp btn" onclick="saveGHToken()">保存并同步</button>
+    </div>
+  </div>`;
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
+}
+
+function saveGHToken(){
+  const t=document.getElementById('gh-token-input').value.trim();
+  if(!t)return;
+  _ghToken=t;
+  localStorage.setItem(GH_TOKEN_KEY,t);
+  document.getElementById('gh-overlay')?.remove();
+  loadFromGH();
+}
+
+function clearGHToken(){
+  _ghToken='';
+  localStorage.removeItem(GH_TOKEN_KEY);
+  document.getElementById('gh-overlay')?.remove();
+  setSyncStatus('off','未连接');
+}
+
+// ── image compression before save ───────────────────────
+function compressImage(dataUrl,cb){
+  const img=new Image();
+  img.onload=()=>{
+    const MAX=1200,q=0.82;
+    let w=img.width,h=img.height;
+    if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    cb(c.toDataURL('image/jpeg',q));
+  };
+  img.src=dataUrl;
+}
+// ────────────────────────────────────────────────────────
+let DATA=ld(), IMGS=ldImgs();
+let view='recipe',selR=null,selI=null,selStore=null,iFilter='all',sm=null,_editId=null,_tmpType='short',_tmpImgs={};
+let checked={};
+let rMeal='全部', rCuisine='全部';
+
+function setRMeal(v){rMeal=v;render();}
+function setRCuisine(v){rCuisine=v;render();}
+
+function gi(id){return DATA.ingredients.find(i=>i.id===id);}
+function gr(id){return DATA.recipes.find(r=>r.id===id);}
+function riByI(id){return DATA.recipes.filter(r=>r.ingredients.some(i=>i.id===id));}
+
+function allStores(){
+  const s=new Set();
+  DATA.ingredients.forEach(i=>i.stores.forEach(st=>s.add(st.name)));
+  return [...s].sort();
+}
+
+function sv(v){
+  view=v;selR=null;selI=null;iFilter='all';
+  document.getElementById('nav-r').className='nav-item'+(v==='recipe'?' active':'');
+  document.getElementById('nav-i').className='nav-item'+(v==='ingredient'?' active t':'');
+  document.getElementById('nav-s').className='nav-item'+(v==='shop'?' active co':'');
+  if(v==='shop'&&!selStore){const stores=allStores();if(stores.length)selStore=stores[0];}
+  render();
+}
+function pickStore(name){selStore=name;render();}
+function toggleCheck(key){checked[key]=!checked[key];
+  // just re-render the checklist panel without full render for speed
+  const panel=document.getElementById('cl-panel');
+  if(panel)panel.innerHTML=checklistContent(selStore);
+}
+function clearChecks(){
+  if(!selStore)return;
+  const prefix=selStore+'__';
+  Object.keys(checked).forEach(k=>{if(k.startsWith(prefix))delete checked[k];});
+  const panel=document.getElementById('cl-panel');
+  if(panel)panel.innerHTML=checklistContent(selStore);
+}
+function selRI(id){selR=id;selI=null;render();}
+function selII(id){selI=id;selR=null;render();}
+function jI(id){view='ingredient';selI=id;selR=null;document.getElementById('nav-r').className='nav-item';document.getElementById('nav-i').className='nav-item active t';render();}
+function jR(id){view='recipe';selR=id;selI=null;document.getElementById('nav-r').className='nav-item active';document.getElementById('nav-i').className='nav-item';render();}
+function setIF(f){iFilter=f;render();}
+function openM(m){sm=m;_tmpType='short';_tmpImgs={};render();}
+function closeM(){sm=null;render();}
+
+function setImg(id,src){IMGS[id]=src;sdImgs();}
+function triggerImgUpload(id,isRecipe){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      compressImage(ev.target.result,compressed=>{
+        setImg(id,compressed);if(isRecipe)selR=id;else selI=id;render();
+      });
+    };
+    reader.readAsDataURL(f);
+  };
+  inp.click();
+}
+
+function heroHtml(id,isRecipe,placeholderEmoji){
+  const src=IMGS[id];
+  return `<div class="hero">
+    ${src?`<img src="${src}" alt="">`:`<div class="hero-placeholder"><span class="ph-icon">${placeholderEmoji}</span><span>点击右下角添加图片</span></div>`}
+    <button class="hero-upload" onclick="triggerImgUpload('${id}',${isRecipe})">${src?'更换图片':'+ 添加图片'}</button>
+  </div>`;
+}
+
+function render(){
+  document.getElementById('mc').innerHTML=view==='recipe'?recipeView():view==='shop'?shopView():ingView();
+  const ov=document.getElementById('moverlay');if(ov)ov.remove();
+  if(sm==='recipe')document.body.insertAdjacentHTML('beforeend',recipeModal());
+  else if(sm==='ingredient')document.body.insertAdjacentHTML('beforeend',ingModal());
+  else if(sm==='edit-recipe'&&_editId)document.body.insertAdjacentHTML('beforeend',editRecipeModal(_editId));
+  else if(sm==='edit-ingredient'&&_editId)document.body.insertAdjacentHTML('beforeend',editIngModal(_editId));
+}
+
+function shopView(){
+  const stores=allStores();
+  const storeList=stores.map(name=>{
+    const items=DATA.ingredients.filter(i=>i.stores.some(s=>s.name===name));
+    const doneCount=items.filter(i=>checked[name+'__'+i.id]).length;
+    return `<div class="store-item${selStore===name?' active':''}" onclick="pickStore('${name.replace(/'/g,"\\'")}')">
+      <div class="s-name">${name}</div>
+      <div class="s-count">${doneCount>0?`${doneCount}/${items.length} 已勾选`:`${items.length} 件`}</div>
+    </div>`;
+  }).join('');
+
+  const content=selStore?checklistContent(selStore):`<div class="store-empty"><span class="store-empty-icon">🏪</span><span>选择左侧门店</span></div>`;
+
+  return `<div class="shop-view">
+    <div class="store-list">${storeList||'<div style="padding:12px;font-size:12px;color:var(--tx3)">还没有购买渠道数据</div>'}</div>
+    <div class="checklist-panel" id="cl-panel">${content}</div>
+  </div>`;
+}
+
+function checklistContent(storeName){
+  if(!storeName)return'';
+  const items=DATA.ingredients.filter(i=>i.stores.some(s=>s.name===storeName));
+  if(!items.length)return`<div class="store-empty"><span class="store-empty-icon">🤷</span><span>该门店暂无食材</span></div>`;
+
+  const shorts=items.filter(i=>i.type==='short');
+  const longs=items.filter(i=>i.type==='long');
+  const total=items.length;
+  const done=items.filter(i=>checked[storeName+'__'+i.id]).length;
+  const pct=total?Math.round(done/total*100):0;
+
+  function itemRow(i){
+    const key=storeName+'__'+i.id;
+    const isDone=!!checked[key];
+    const storeInfo=i.stores.find(s=>s.name===storeName);
+    return `<div class="cl-item${isDone?' checked':''}" onclick="toggleCheck('${key}')">
+      <div class="cl-check${isDone?' on':''}">${isDone?'✓':''}</div>
+      <div class="cl-item-body">
+        <div class="cl-item-name">${i.name}</div>
+        ${storeInfo?.note?`<div class="cl-item-note">${storeInfo.note}</div>`:''}
+        ${storeInfo?.freq?`<div class="cl-item-freq">补货频率：${storeInfo.freq}</div>`:''}
+      </div>
+    </div>`;
+  }
+
+  const shortSection=shorts.length?`
+    <div class="cl-section">
+      <div class="cl-sec-label"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tl4)"></span>🥬 短期生鲜（${shorts.length}件）</div>
+      ${shorts.map(itemRow).join('')}
+    </div>`:'';
+
+  const longSection=longs.length?`
+    <div class="cl-section">
+      <div class="cl-sec-label"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pu4)"></span>🧂 长期储备（${longs.length}件）</div>
+      ${longs.map(itemRow).join('')}
+    </div>`:'';
+
+  return `
+    <div class="cl-header">
+      <span class="cl-title">🛒 ${storeName}</span>
+      <button class="cl-clear" onclick="clearChecks()">清空勾选</button>
+    </div>
+    <div class="cl-progress">
+      <div class="cl-bar-wrap"><div class="cl-bar" style="width:${pct}%"></div></div>
+      <span class="cl-pct">${done}/${total}</span>
+    </div>
+    ${shortSection}${longSection}`;
+}
+
+function typeBadge(type){
+  if(type==='long') return `<span class="badge badge-long"><span class="badge-dot" style="background:var(--pu4)"></span>长期储备</span>`;
+  return `<span class="badge badge-short"><span class="badge-dot" style="background:var(--tl4)"></span>短期补货</span>`;
+}
+
+function recipeView(){
+  // compute active filters
+  const meals=['全部','Brunch','正餐','甜品'];
+  const cuisines=['全部','中餐','西餐','轻食'];
+
+  const filtered=DATA.recipes.filter(r=>{
+    const mealOk=rMeal==='全部'||r.mealTime===rMeal;
+    const cuisineOk=rCuisine==='全部'||r.category===rCuisine;
+    return mealOk&&cuisineOk;
+  });
+
+  const list=filtered.map(r=>{
+    const src=IMGS[r.id];
+    return `<div class="li${selR===r.id?' active':''}" onclick="selRI('${r.id}')">
+      <div class="li-inner">
+        ${src?`<img class="li-img" src="${src}" alt="">`:`<div class="li-img-ph">${r.category==='西餐'?'🥗':'🍲'}</div>`}
+        <div class="li-text">
+          <div class="li-name">${r.name}</div>
+          <div class="li-meta">${r.category}·${r.mealTime||''}·${r.cookTime}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || `<div style="padding:16px 14px;font-size:12px;color:var(--tx3)">暂无符合条件的菜谱</div>`;
+
+  // filter pill rows
+  const mealRow=meals.map(m=>`<button class="fpill${rMeal===m?' fp-active-am':''}" onclick="setRMeal('${m}')">${m}</button>`).join('');
+  const cuisineRow=cuisines.map(c=>`<button class="fpill${rCuisine===c?' fp-active-tl':''}" onclick="setRCuisine('${c}')">${c}</button>`).join('');
+  const filterBar=`<div class="filter-bar"><div class="fpill-row">${mealRow}</div><div class="fpill-row">${cuisineRow}</div></div>`;
+
+  let detail='';
+  if(!selR){
+    detail=`<div class="de"><div class="de-icon">🍳</div>选择菜谱查看详情</div>`;
+  } else {
+    const r=gr(selR);
+    if(!r){detail=`<div class="de"><div class="de-icon">🍳</div>选择菜谱查看详情</div>`;}
+    else{
+    const ings=r.ingredients.map(ri=>{const g=gi(ri.id);return g?`<span class="itag" onclick="jI('${ri.id}')">${g.name}<span class="qty"> ${ri.qty}</span></span>`:''}).join('');
+    const steps=r.steps.map((s,i)=>`<div class="step"><div class="snum">${i+1}</div><div>${s}</div></div>`).join('');
+
+    const storeMap={};
+    r.ingredients.forEach(ri=>{
+      const g=gi(ri.id);if(!g)return;
+      g.stores.forEach(s=>{
+        if(!storeMap[s.name]) storeMap[s.name]={items:[],hasShort:false};
+        storeMap[s.name].items.push({name:g.name,qty:ri.qty,type:g.type,note:s.note,freq:s.freq});
+        if(g.type==='short') storeMap[s.name].hasShort=true;
+      });
+    });
+    const storeRows=Object.entries(storeMap).map(([store,data])=>{
+      const pills=data.items.map(it=>`<span class="shop-pill ${it.type==='short'?'sp-short':'sp-long'}">${it.name} <span class="sp-qty">${it.qty}</span></span>`).join('');
+      const urgBadge=data.hasShort?`<span class="shop-fresh">含生鲜</span>`:'';
+      return `<div class="shop-row"><div class="shop-top"><span class="shop-name">🛒 ${store}</span>${urgBadge}</div><div class="shop-pills">${pills}</div></div>`;
+    }).join('');
+
+    detail=`${heroHtml(r.id,true,r.category==='西餐'?'🥗':'🍲')}
+    <div class="dc">
+      <div class="detail-actions">
+        <button class="edit-btn" onclick="openEditR('${r.id}')">✏️ 编辑</button>
+        <button class="del-item-btn" onclick="deleteR('${r.id}')">🗑</button>
+      </div>
+      <div class="dtitle">${r.name}<span class="badge badge-meal">${r.mealTime||''}</span></div>
+      <div class="dsub">${r.category} · ⏱ ${r.cookTime}</div>
+      <div class="slabel">所需原料</div>
+      <div class="tags-wrap">${ings}</div>
+      <div class="divider"></div>
+      <div class="slabel">需要去哪里买</div>
+      <div class="shop-list">${storeRows}</div>
+      <div class="divider"></div>
+      <div class="slabel">烹饪步骤</div>
+      <div class="steps">${steps}</div>
+    </div>`;
+    }
+  }
+  return `<div class="list-panel"><div class="ph"><span class="pt">菜谱 (${filtered.length}/${DATA.recipes.length})</span><button class="add-btn" onclick="openM('recipe')">+</button></div>${filterBar}<div class="ls">${list}</div></div><div class="dp">${detail}</div>`;
+}
+
+function ingView(){
+  const all=DATA.ingredients;
+  const filtered=iFilter==='all'?all:all.filter(i=>i.type===iFilter);
+  const longCount=all.filter(i=>i.type==='long').length;
+  const shortCount=all.filter(i=>i.type==='short').length;
+
+  const list=filtered.map(i=>{
+    const cnt=riByI(i.id).length;
+    const src=IMGS[i.id];
+    return `<div class="li${selI===i.id?' active t':''}" onclick="selII('${i.id}')">
+      <div class="li-inner">
+        ${src?`<img class="li-img" src="${src}" alt="">`:`<div class="li-img-ph">${i.type==='long'?'🧂':'🥬'}</div>`}
+        <div class="li-text">
+          <div class="li-name"><span class="type-dot ${i.type==='long'?'dot-long':'dot-short'}"></span>${i.name}</div>
+          <div class="li-meta">${i.stores[0]?.name||'—'} · ${i.stores[0]?.freq||''} · 用于${cnt}道菜</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  let detail='';
+  if(!selI){
+    detail=`<div class="de"><div class="de-icon">🛒</div>选择原料查看详情</div>`;
+  } else {
+    const ing=gi(selI);
+    const recs=riByI(selI);
+    const stores=ing.stores.map(s=>`<div class="buy-row">🛒 <div><div class="buy-store">${s.name}</div><div class="buy-note">${s.note}</div>${s.freq?`<div class="buy-freq">补货频率：${s.freq}</div>`:''}</div></div>`).join('');
+    const rtags=recs.length?recs.map(r=>`<span class="rtag" onclick="jR('${r.id}')">${r.name}</span>`).join(''):`<span style="font-size:12px;color:var(--tx2)">暂无菜谱使用此原料</span>`;
+    detail=`${heroHtml(ing.id,false,'🥬')}
+    <div class="dc">
+      <div class="detail-actions">
+        <button class="edit-btn" onclick="openEditI('${ing.id}')">✏️ 编辑</button>
+        <button class="del-item-btn" onclick="deleteI('${ing.id}')">🗑</button>
+      </div>
+      <div class="dtitle">${ing.name}${typeBadge(ing.type)}</div>
+      <div class="dsub">原料信息</div>
+      <div class="slabel">购买渠道</div>${stores}
+      <div class="divider"></div>
+      <div class="slabel">用于哪些菜谱</div>
+      <div class="tags-wrap">${rtags}</div>
+    </div>`;
+  }
+
+  const fa=iFilter==='all',fl=iFilter==='long',fs=iFilter==='short';
+  const tabs=`<div class="ftabs">
+    <button class="ftab${fa?' active amber':''}" onclick="setIF('all')">全部 ${all.length}</button>
+    <button class="ftab${fl?' active':''}" onclick="setIF('long')">长期 ${longCount}</button>
+    <button class="ftab${fs?' active':''}" onclick="setIF('short')">短期 ${shortCount}</button>
+  </div>`;
+
+  return `<div class="list-panel"><div class="ph"><span class="pt">原料</span><button class="add-btn" onclick="openM('ingredient')">+</button></div>${tabs}<div class="ls">${list}</div></div><div class="dp">${detail}</div>`;
+}
+
+function recipeModal(){
+  const opts=DATA.ingredients.map(i=>`<label class="cbi"><input type="checkbox" value="${i.id}" style="width:13px;height:13px;"> ${i.name}</label>`).join('');
+  return `<div class="mo" id="moverlay" onclick="if(event.target===this)closeM()">
+    <div class="md">
+      <h3>新增菜谱</h3>
+      <div class="fg"><label class="fl">菜名</label><input class="fi" id="m-rn" placeholder="如：宫保鸡丁"></div>
+      <div class="fg"><label class="fl">分类</label><input class="fi" id="m-rc" placeholder="如：川菜、西餐"></div>
+      <div class="fg"><label class="fl">餐次</label><select class="fi" id="m-rm"><option value="">请选择</option><option>Brunch</option><option>正餐</option><option>甜品</option></select></div>
+      <div class="fg"><label class="fl">烹饪时间</label><input class="fi" id="m-rt" placeholder="如：30分钟"></div>
+      <div class="fg"><label class="fl">成品图片</label><div class="img-upload-area" onclick="pickImg('recipe-new')" id="img-area-rn">点击上传成品图</div></div>
+      <div class="fg"><label class="fl">选择原料</label><div class="cbg">${opts}</div></div>
+      <div class="fg"><label class="fl">烹饪步骤（每行一步）</label><textarea class="fi" id="m-rs" rows="3" placeholder="步骤1&#10;步骤2&#10;步骤3"></textarea></div>
+      <div class="ma"><button class="btn" onclick="closeM()">取消</button><button class="bp btn" onclick="saveR()">保存</button></div>
+    </div></div>`;
+}
+
+function ingModal(){
+  return `<div class="mo" id="moverlay" onclick="if(event.target===this)closeM()">
+    <div class="md">
+      <h3>新增原料</h3>
+      <div class="fg"><label class="fl">原料名称</label><input class="fi t" id="m-in" placeholder="如：香菇"></div>
+      <div class="fg"><label class="fl">储备类型</label>
+        <div class="type-sel">
+          <button class="type-opt" id="opt-long" onclick="pickType('long')">🧂 长期储备<br><span style="font-size:10px;opacity:0.7">调料、干货等</span></button>
+          <button class="type-opt" id="opt-short" onclick="pickType('short')">🥬 短期补货<br><span style="font-size:10px;opacity:0.7">生鲜、乳制品等</span></button>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">图片</label><div class="img-upload-area" onclick="pickImg('ing-new')" id="img-area-in">点击上传原料图片</div></div>
+      <div class="fg">
+        <label class="fl">购买渠道</label>
+        <div id="m-stores">
+          <div class="sr"><input class="fi t" placeholder="商店名" style="flex:1"><input class="fi t" placeholder="备注" style="flex:2"><input class="fi t" placeholder="频率" style="width:72px"><button class="del-btn" onclick="this.parentNode.remove()">×</button></div>
+        </div>
+        <button class="ab t" onclick="addSR()">+ 添加渠道</button>
+      </div>
+      <div class="ma"><button class="btn" onclick="closeM()">取消</button><button class="bp t btn" onclick="saveI()">保存</button></div>
+    </div></div>`;
+}
+
+function pickType(t){
+  _tmpType=t;
+  const l=document.getElementById('opt-long'),s=document.getElementById('opt-short');
+  if(l&&s){l.className='type-opt'+(t==='long'?' sel-long':'');s.className='type-opt'+(t==='short'?' sel-short':'');}
+}
+
+function pickImg(key){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      _tmpImgs[key]=ev.target.result;
+      const area=document.getElementById('img-area-'+(key==='recipe-new'?'rn':'in'));
+      if(area)area.innerHTML=`<img class="img-preview" src="${ev.target.result}" alt="">`;
+    };
+    reader.readAsDataURL(f);
+  };
+  inp.click();
+}
+
+function addSR(){const d=document.getElementById('m-stores');const div=document.createElement('div');div.className='sr';div.innerHTML=`<input class="fi t" placeholder="商店名" style="flex:1"><input class="fi t" placeholder="备注" style="flex:2"><input class="fi t" placeholder="频率" style="width:72px"><button class="del-btn" onclick="this.parentNode.remove()">×</button>`;d.appendChild(div);}
+
+function saveR(){
+  const name=document.getElementById('m-rn').value.trim();if(!name)return;
+  const ings=[...document.querySelectorAll('#moverlay input[type=checkbox]:checked')].map(cb=>({id:cb.value,qty:'适量'}));
+  const steps=document.getElementById('m-rs').value.split('\n').filter(s=>s.trim());
+  const id='r'+Date.now();
+  DATA.recipes.push({id,name,category:document.getElementById('m-rc').value||'其他',mealTime:document.getElementById('m-rm').value||'',cookTime:document.getElementById('m-rt').value||'—',ingredients:ings,steps});
+  if(_tmpImgs['recipe-new']){IMGS[id]=_tmpImgs['recipe-new'];sdImgs();}
+  _tmpImgs={};selR=id;sm=null;sd();render();
+}
+
+function saveI(){
+  const name=document.getElementById('m-in').value.trim();if(!name)return;
+  const rows=document.querySelectorAll('#m-stores .sr');
+  const stores=[...rows].map(row=>{const ins=row.querySelectorAll('input');return{name:ins[0].value||'待填写',note:ins[1].value||'',freq:ins[2].value||''};}).filter(s=>s.name!=='待填写');
+  const id='i'+Date.now();
+  DATA.ingredients.push({id,name,type:_tmpType,stores:stores.length?stores:[{name:'待填写',note:'',freq:''}]});
+  if(_tmpImgs['ing-new']){IMGS[id]=_tmpImgs['ing-new'];sdImgs();}
+  _tmpImgs={};selI=id;sm=null;sd();render();
+}
+
+function openEditR(id){sm='edit-recipe';_editId=id;_tmpType='short';_tmpImgs={};render();}
+function openEditI(id){const ing=gi(id);sm='edit-ingredient';_editId=id;_tmpType=ing?ing.type:'short';_tmpImgs={};render();}
+
+function deleteR(id){
+  if(!confirm('确定删除这道菜谱吗？')) return;
+  DATA.recipes=DATA.recipes.filter(r=>r.id!==id);
+  delete IMGS[id]; selR=null; sd(); sdImgs(); render();
+}
+function deleteI(id){
+  if(!confirm('确定删除这个原料吗？')) return;
+  DATA.ingredients=DATA.ingredients.filter(i=>i.id!==id);
+  DATA.recipes.forEach(r=>{r.ingredients=r.ingredients.filter(ri=>ri.id!==id);});
+  delete IMGS[id]; selI=null; sd(); sdImgs(); render();
+}
+
+function editRecipeModal(id){
+  const r=gr(id);
+  const existQtyMap={};r.ingredients.forEach(ri=>existQtyMap[ri.id]=ri.qty);
+  const opts=DATA.ingredients.map(i=>{
+    const checked=existQtyMap[i.id]!==undefined?'checked':'';
+    const qty=existQtyMap[i.id]||'适量';
+    return `<label class="cbi"><input type="checkbox" value="${i.id}" data-qty="${qty}" ${checked} style="width:13px;height:13px;"> ${i.name}${checked?` <span style="color:var(--tx3);font-size:10px;">(${qty})</span>`:''}</label>`;
+  }).join('');
+  const src=IMGS[id];
+  const imgArea=src?`<img class="img-preview" src="${src}" alt="" style="width:100%;height:80px;object-fit:cover;border-radius:var(--r);">`:'点击更换图片';
+  return `<div class="mo" id="moverlay" onclick="if(event.target===this)closeM()">
+    <div class="md">
+      <h3>编辑菜谱</h3>
+      <div class="fg"><label class="fl">菜名</label><input class="fi" id="m-rn" value="${r.name.replace(/"/g,'&quot;')}"></div>
+      <div class="fg"><label class="fl">分类</label><input class="fi" id="m-rc" value="${(r.category||'').replace(/"/g,'&quot;')}"></div>
+      <div class="fg"><label class="fl">餐次</label><select class="fi" id="m-rm"><option value="">请选择</option><option ${(r.mealTime||'')==='Brunch'?'selected':''}>Brunch</option><option ${(r.mealTime||'')==='正餐'?'selected':''}>正餐</option><option ${(r.mealTime||'')==='甜品'?'selected':''}>甜品</option></select></div>
+      <div class="fg"><label class="fl">烹饪时间</label><input class="fi" id="m-rt" value="${(r.cookTime||'').replace(/"/g,'&quot;')}"></div>
+      <div class="fg"><label class="fl">成品图片</label><div class="img-upload-area" onclick="pickImg('recipe-edit')" id="img-area-rn">${imgArea}</div></div>
+      <div class="fg"><label class="fl">选择原料</label><div class="cbg">${opts}</div></div>
+      <div class="fg"><label class="fl">烹饪步骤（每行一步）</label><textarea class="fi" id="m-rs" rows="4">${r.steps.join('\n')}</textarea></div>
+      <div class="ma"><button class="btn" onclick="closeM()">取消</button><button class="bp btn" onclick="updateR('${id}')">保存修改</button></div>
+    </div></div>`;
+}
+
+function editIngModal(id){
+  const ing=gi(id);
+  const src=IMGS[id];
+  const imgArea=src?`<img class="img-preview" src="${src}" alt="" style="width:100%;height:80px;object-fit:cover;border-radius:var(--r);">`:'点击更换图片';
+  const storeRows=ing.stores.map(s=>`<div class="sr"><input class="fi t" placeholder="商店名" value="${(s.name||'').replace(/"/g,'&quot;')}" style="flex:1"><input class="fi t" placeholder="备注" value="${(s.note||'').replace(/"/g,'&quot;')}" style="flex:2"><input class="fi t" placeholder="频率" value="${(s.freq||'').replace(/"/g,'&quot;')}" style="width:72px"><button class="del-btn" onclick="this.parentNode.remove()">×</button></div>`).join('');
+  return `<div class="mo" id="moverlay" onclick="if(event.target===this)closeM()">
+    <div class="md">
+      <h3>编辑原料</h3>
+      <div class="fg"><label class="fl">原料名称</label><input class="fi t" id="m-in" value="${ing.name.replace(/"/g,'&quot;')}"></div>
+      <div class="fg"><label class="fl">储备类型</label>
+        <div class="type-sel">
+          <button class="type-opt${ing.type==='long'?' sel-long':''}" id="opt-long" onclick="pickType('long')">🧂 长期储备<br><span style="font-size:10px;opacity:0.7">调料、干货等</span></button>
+          <button class="type-opt${ing.type==='short'?' sel-short':''}" id="opt-short" onclick="pickType('short')">🥬 短期补货<br><span style="font-size:10px;opacity:0.7">生鲜、乳制品等</span></button>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">图片</label><div class="img-upload-area" onclick="pickImg('ing-edit')" id="img-area-in">${imgArea}</div></div>
+      <div class="fg">
+        <label class="fl">购买渠道</label>
+        <div id="m-stores">${storeRows}</div>
+        <button class="ab t" onclick="addSR()">+ 添加渠道</button>
+      </div>
+      <div class="ma"><button class="btn" onclick="closeM()">取消</button><button class="bp t btn" onclick="updateI('${id}')">保存修改</button></div>
+    </div></div>`;
+}
+
+function updateR(id){
+  const name=document.getElementById('m-rn').value.trim();if(!name)return;
+  const ings=[...document.querySelectorAll('#moverlay input[type=checkbox]:checked')].map(cb=>({id:cb.value,qty:cb.dataset.qty||'适量'}));
+  const steps=document.getElementById('m-rs').value.split('\n').filter(s=>s.trim());
+  const idx=DATA.recipes.findIndex(r=>r.id===id);if(idx===-1)return;
+  DATA.recipes[idx]={...DATA.recipes[idx],name,category:document.getElementById('m-rc').value||'其他',mealTime:document.getElementById('m-rm').value||'',cookTime:document.getElementById('m-rt').value||'—',ingredients:ings,steps};
+  if(_tmpImgs['recipe-edit']){IMGS[id]=_tmpImgs['recipe-edit'];sdImgs();}
+  _tmpImgs={};selR=id;sm=null;sd();render();
+}
+
+function updateI(id){
+  const name=document.getElementById('m-in').value.trim();if(!name)return;
+  const rows=document.querySelectorAll('#m-stores .sr');
+  const stores=[...rows].map(row=>{const ins=row.querySelectorAll('input');return{name:ins[0].value||'',note:ins[1].value||'',freq:ins[2].value||''};}).filter(s=>s.name);
+  const idx=DATA.ingredients.findIndex(i=>i.id===id);if(idx===-1)return;
+  DATA.ingredients[idx]={...DATA.ingredients[idx],name,type:_tmpType,stores:stores.length?stores:[{name:'待填写',note:'',freq:''}]};
+  if(_tmpImgs['ing-edit']){IMGS[id]=_tmpImgs['ing-edit'];sdImgs();}
+  _tmpImgs={};selI=id;sm=null;sd();render();
+}
+
+// init
+render();
+loadFromGH();
+</script>
+</body>
+</html>
